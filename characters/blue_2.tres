@@ -1,0 +1,13 @@
+[gd_resource type="Resource" script_class="CharacterData" format=3 uid="uid://b8nv01etq6v2x"]
+
+[ext_resource type="Script" uid="uid://dcgx6yoqov8el" path="res://scripts/character_data.gd" id="1"]
+[ext_resource type="Texture2D" uid="uid://cyhayai63ce7" path="res://assets/blue_portrait.svg" id="2"]
+[ext_resource type="Resource" path="res://weapons/iron_sword.tres" id="3"]
+
+[resource]
+resource_name = "Blue 2"
+script = ExtResource("1")
+character_name = "Blue 2"
+portrait = ExtResource("2")
+equipped_weapon = ExtResource("3")
+puissance = 13
