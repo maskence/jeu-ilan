@@ -6,3 +6,4 @@ extends Resource
 ## Base chance to hit, as a percentage.
 @export_range(0, 100, 1, "suffix:%") var precision: int = 95
 @export_range(0, 999, 1) var weight: int = 1
+@export_range(0, 100, 1, "suffix:%") var crit: int = 0

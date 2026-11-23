@@ -1,0 +1,20 @@
+[gd_resource type="Resource" script_class="CharacterData" format=3]
+
+[ext_resource type="Script" path="res://scripts/character_data.gd" id="1"]
+[ext_resource type="Texture2D" path="res://assets/red_portrait.svg" id="2"]
+[ext_resource type="Resource" path="res://weapons/iron_sword.tres" id="3"]
+
+[resource]
+resource_name = "Red 5 · Menace"
+script = ExtResource("1")
+character_name = "Red 5 · Menace"
+portrait = ExtResource("2")
+equipped_weapon = ExtResource("3")
+attack_range = 1
+puissance = 22
+vaillance = 8
+furie = 8
+dexterite = 8
+temperance = 4
+elan = 2
+movement = 4

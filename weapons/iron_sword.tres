@@ -6,6 +6,6 @@
 resource_name = "Iron Sword"
 script = ExtResource("1")
 weapon_name = "Iron Sword"
-attack = 1
+attack = 4
 precision = 95
 weight = 1

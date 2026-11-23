@@ -92,6 +92,7 @@ theme_override_constants/separation = 6
 layout_mode = 2
 theme_override_font_sizes/font_size = 23
 text = "Blue 1"
+autowrap_mode = 3
 
 [node name="HPBar" type="ProgressBar" parent="HUD/Controls/UnitInfo/Margin/Row/Details" unique_id=165036832]
 custom_minimum_size = Vector2(180, 18)
@@ -118,10 +119,10 @@ visible = false
 layout_mode = 0
 anchor_left = 1.0
 anchor_right = 1.0
-offset_left = -344.0
+offset_left = -452.0
 offset_top = 92.0
 offset_right = -24.0
-offset_bottom = 230.0
+offset_bottom = 92.0
 mouse_filter = 2
 theme_override_styles/panel = SubResource("InfoStyle")
 
@@ -136,7 +137,7 @@ theme_override_constants/margin_bottom = 12
 [node name="Details" type="VBoxContainer" parent="HUD/Controls/BattleForecast/Margin" unique_id=1409508468]
 layout_mode = 2
 mouse_filter = 2
-theme_override_constants/separation = 6
+theme_override_constants/separation = 10
 
 [node name="Title" type="Label" parent="HUD/Controls/BattleForecast/Margin/Details" unique_id=800762709]
 layout_mode = 2
@@ -144,14 +145,141 @@ theme_override_colors/font_color = Color(1, 0.81, 0.56, 1)
 theme_override_font_sizes/font_size = 20
 text = "Battle Forecast"
 
-[node name="Matchup" type="Label" parent="HUD/Controls/BattleForecast/Margin/Details" unique_id=1261641920]
+[node name="Comparison" type="GridContainer" parent="HUD/Controls/BattleForecast/Margin/Details"]
 layout_mode = 2
-theme_override_font_sizes/font_size = 18
+mouse_filter = 2
+theme_override_constants/h_separation = 12
+theme_override_constants/v_separation = 8
+columns = 3
+
+[node name="NameCaption" type="Label" parent="HUD/Controls/BattleForecast/Margin/Details/Comparison"]
+layout_mode = 2
+custom_minimum_size = Vector2(68, 0)
+theme_override_colors/font_color = Color(0.72, 0.78, 0.86, 1)
+text = ""
+
+[node name="NameAlly" type="Label" parent="HUD/Controls/BattleForecast/Margin/Details/Comparison"]
+layout_mode = 2
+size_flags_horizontal = 3
+horizontal_alignment = 1
+theme_override_colors/font_color = Color(0.42, 0.76, 1.0, 1)
 autowrap_mode = 3
 
-[node name="Stats" type="Label" parent="HUD/Controls/BattleForecast/Margin/Details" unique_id=5368070]
+[node name="NameEnemy" type="Label" parent="HUD/Controls/BattleForecast/Margin/Details/Comparison"]
 layout_mode = 2
-theme_override_font_sizes/font_size = 18
+size_flags_horizontal = 3
+horizontal_alignment = 1
+theme_override_colors/font_color = Color(1.0, 0.56, 0.56, 1)
+autowrap_mode = 3
+
+[node name="DamageCaption" type="Label" parent="HUD/Controls/BattleForecast/Margin/Details/Comparison"]
+layout_mode = 2
+custom_minimum_size = Vector2(68, 0)
+theme_override_colors/font_color = Color(0.72, 0.78, 0.86, 1)
+text = "Damage"
+
+[node name="DamageAlly" type="Label" parent="HUD/Controls/BattleForecast/Margin/Details/Comparison"]
+layout_mode = 2
+size_flags_horizontal = 3
+horizontal_alignment = 1
+theme_override_font_sizes/font_size = 26
+
+[node name="DamageEnemy" type="Label" parent="HUD/Controls/BattleForecast/Margin/Details/Comparison"]
+layout_mode = 2
+size_flags_horizontal = 3
+horizontal_alignment = 1
+theme_override_font_sizes/font_size = 26
+
+[node name="HitCaption" type="Label" parent="HUD/Controls/BattleForecast/Margin/Details/Comparison"]
+layout_mode = 2
+custom_minimum_size = Vector2(68, 0)
+theme_override_colors/font_color = Color(0.72, 0.78, 0.86, 1)
+text = "Hit"
+
+[node name="HitAlly" type="Label" parent="HUD/Controls/BattleForecast/Margin/Details/Comparison"]
+layout_mode = 2
+size_flags_horizontal = 3
+horizontal_alignment = 1
+theme_override_font_sizes/font_size = 21
+
+[node name="HitEnemy" type="Label" parent="HUD/Controls/BattleForecast/Margin/Details/Comparison"]
+layout_mode = 2
+size_flags_horizontal = 3
+horizontal_alignment = 1
+theme_override_font_sizes/font_size = 21
+
+[node name="CritCaption" type="Label" parent="HUD/Controls/BattleForecast/Margin/Details/Comparison"]
+layout_mode = 2
+custom_minimum_size = Vector2(68, 0)
+theme_override_colors/font_color = Color(0.72, 0.78, 0.86, 1)
+text = "Crit"
+
+[node name="CritAlly" type="Label" parent="HUD/Controls/BattleForecast/Margin/Details/Comparison"]
+layout_mode = 2
+size_flags_horizontal = 3
+horizontal_alignment = 1
+theme_override_font_sizes/font_size = 21
+
+[node name="CritEnemy" type="Label" parent="HUD/Controls/BattleForecast/Margin/Details/Comparison"]
+layout_mode = 2
+size_flags_horizontal = 3
+horizontal_alignment = 1
+theme_override_font_sizes/font_size = 21
+
+[node name="Divider" type="HSeparator" parent="HUD/Controls/BattleForecast/Margin/Details"]
+layout_mode = 2
+mouse_filter = 2
+
+[node name="OrderTitle" type="Label" parent="HUD/Controls/BattleForecast/Margin/Details"]
+layout_mode = 2
+theme_override_colors/font_color = Color(0.72, 0.78, 0.86, 1)
+text = "Strike order"
+
+[node name="Order" type="HBoxContainer" parent="HUD/Controls/BattleForecast/Margin/Details"]
+layout_mode = 2
+mouse_filter = 2
+theme_override_constants/separation = 8
+
+[node name="Strike1" type="PanelContainer" parent="HUD/Controls/BattleForecast/Margin/Details/Order"]
+layout_mode = 2
+mouse_filter = 2
+size_flags_horizontal = 3
+theme_override_styles/panel = SubResource("HPBackground")
+
+[node name="Step" type="Label" parent="HUD/Controls/BattleForecast/Margin/Details/Order/Strike1"]
+layout_mode = 2
+custom_minimum_size = Vector2(0, 54)
+horizontal_alignment = 1
+vertical_alignment = 1
+
+[node name="Strike2" type="PanelContainer" parent="HUD/Controls/BattleForecast/Margin/Details/Order"]
+layout_mode = 2
+mouse_filter = 2
+size_flags_horizontal = 3
+theme_override_styles/panel = SubResource("HPBackground")
+
+[node name="Step" type="Label" parent="HUD/Controls/BattleForecast/Margin/Details/Order/Strike2"]
+layout_mode = 2
+custom_minimum_size = Vector2(0, 54)
+horizontal_alignment = 1
+vertical_alignment = 1
+
+[node name="Strike3" type="PanelContainer" parent="HUD/Controls/BattleForecast/Margin/Details/Order"]
+layout_mode = 2
+mouse_filter = 2
+size_flags_horizontal = 3
+theme_override_styles/panel = SubResource("HPBackground")
+
+[node name="Step" type="Label" parent="HUD/Controls/BattleForecast/Margin/Details/Order/Strike3"]
+layout_mode = 2
+custom_minimum_size = Vector2(0, 54)
+horizontal_alignment = 1
+vertical_alignment = 1
+
+[node name="CounterNote" type="Label" parent="HUD/Controls/BattleForecast/Margin/Details"]
+layout_mode = 2
+theme_override_colors/font_color = Color(0.72, 0.78, 0.86, 1)
+text = "No counter"
 
 [node name="EndTurn" type="Button" parent="HUD/Controls" unique_id=856858362]
 layout_mode = 0

@@ -1,0 +1,20 @@
+[gd_resource type="Resource" script_class="CharacterData" format=3]
+
+[ext_resource type="Script" path="res://scripts/character_data.gd" id="1"]
+[ext_resource type="Texture2D" path="res://assets/blue_portrait.svg" id="2"]
+[ext_resource type="Resource" path="res://weapons/iron_sword.tres" id="3"]
+
+[resource]
+resource_name = "Blue 5 · Ingénieur"
+script = ExtResource("1")
+character_name = "Blue 5 · Ingénieur"
+portrait = ExtResource("2")
+equipped_weapon = ExtResource("3")
+attack_range = 1
+puissance = 14
+vaillance = 4
+furie = 3
+dexterite = 6
+temperance = 3
+elan = 7
+movement = 6

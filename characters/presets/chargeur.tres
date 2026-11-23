@@ -1,0 +1,15 @@
+[gd_resource type="Resource" script_class="CharacterData" format=3]
+
+[ext_resource type="Script" path="res://scripts/character_data.gd" id="1"]
+
+[resource]
+resource_name = "Chargeur"
+script = ExtResource("1")
+character_name = "Chargeur"
+puissance = 14
+vaillance = 4
+furie = 6
+dexterite = 5
+temperance = 3
+elan = 4
+movement = 9

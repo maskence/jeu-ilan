@@ -1,0 +1,15 @@
+[gd_resource type="Resource" script_class="CharacterData" format=3]
+
+[ext_resource type="Script" path="res://scripts/character_data.gd" id="1"]
+
+[resource]
+resource_name = "Artilleur"
+script = ExtResource("1")
+character_name = "Artilleur"
+puissance = 12
+vaillance = 2
+furie = 6
+dexterite = 8
+temperance = 5
+elan = 3
+movement = 5

@@ -1,12 +1,20 @@
 [gd_resource type="Resource" script_class="CharacterData" format=3 uid="uid://c1at0rr0d4urf"]
 
-[ext_resource type="Script" uid="uid://dcgx6yoqov8el" path="res://scripts/character_data.gd" id="1"]
-[ext_resource type="Texture2D" uid="uid://g1yvtydlj1gk" path="res://assets/red_portrait.svg" id="2"]
+[ext_resource type="Script" path="res://scripts/character_data.gd" id="1"]
+[ext_resource type="Texture2D" path="res://assets/red_portrait.svg" id="2"]
 [ext_resource type="Resource" path="res://weapons/iron_sword.tres" id="3"]
 
 [resource]
-resource_name = "Red 1"
+resource_name = "Red 1 · Frontliner"
 script = ExtResource("1")
-character_name = "Red 1"
+character_name = "Red 1 · Frontliner"
 portrait = ExtResource("2")
 equipped_weapon = ExtResource("3")
+attack_range = 1
+puissance = 18
+vaillance = 6
+furie = 4
+dexterite = 5
+temperance = 4
+elan = 6
+movement = 6

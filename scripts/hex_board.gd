@@ -25,7 +25,6 @@ class Unit:
 	var character: CharacterDefinition
 	var portrait: Texture2D
 	var max_hp: int
-	var puissance: int
 	var hp: int
 	var attack_range: int
 	var furie: int
@@ -44,8 +43,7 @@ class Unit:
 		facing = 3 if enemy else 0
 		unit_name = definition.character_name
 		portrait = definition.portrait
-		puissance = definition.puissance
-		max_hp = puissance
+		max_hp = definition.puissance
 		hp = max_hp
 		attack_range = definition.attack_range
 		furie = definition.furie
@@ -56,21 +54,44 @@ class Unit:
 	func attack_damage() -> int:
 		return furie + (equipped_weapon.attack if equipped_weapon != null else 0)
 
-	func damage_against(target: Unit) -> int:
-		return maxi(0, attack_damage() - target.vaillance)
+	func effective_weight() -> int:
+		if equipped_weapon == null or vaillance > equipped_weapon.weight:
+			return 0
+		return equipped_weapon.weight
 
-	func has_weight_penalty() -> bool:
-		return equipped_weapon != null and vaillance < equipped_weapon.weight
+	func priority() -> int:
+		return dexterite - effective_weight()
 
-	func strike_count() -> int:
-		return 2 if equipped_weapon != null and furie > equipped_weapon.weight else 1
 
-	func precision() -> int:
-		var base_precision: int = equipped_weapon.precision if equipped_weapon != null else 100
-		return base_precision + dexterite * 5
+class Strike:
+	var attacker: Unit
+	var target: Unit
+	var damage: int
+	var hit_chance: int
+	var crit_chance: int
+	var is_counter: bool
 
-	func hit_chance(target: Unit) -> int:
-		return clampi(precision() - target.puissance, 0, 100)
+	func _init(source: Unit, defender: Unit, rear: bool, counter: bool) -> void:
+		attacker = source
+		target = defender
+		is_counter = counter
+		var weapon_accuracy: int = source.equipped_weapon.precision if source.equipped_weapon != null else 100
+		var weapon_crit: int = source.equipped_weapon.crit if source.equipped_weapon != null else 0
+		var accuracy: int = source.dexterite + floori(source.character.elan / 2.0) + weapon_accuracy
+		accuracy += 10 if rear else 0
+		hit_chance = clampi(accuracy - defender.priority() - source.effective_weight(), 0, 100)
+		damage = maxi(0, source.attack_damage() + (1 if rear else 0) - defender.vaillance)
+		var critical: int = floori(source.character.temperance / 2.0) + weapon_crit
+		crit_chance = clampi(critical - floori(defender.character.temperance / 2.0), 0, 100)
+
+
+class Exchange:
+	var opening: Strike
+	var counter: Strike
+	var counter_eligible: bool
+	var follow_up: bool
+	var strikes: Array[Strike] = []
+
 
 var cells: Dictionary[Vector2i, bool] = {}
 var players: Array[Unit] = []
@@ -95,6 +116,8 @@ var hovered_unit: Unit = null
 var hit_unit: Unit = null
 var hit_damage: int = 0
 var attack_hit: bool = false
+var critical_hit: bool = false
+var counter_strike: bool = false
 var battle_over: bool = false
 @onready var instructions: Label = $"../HUD/Controls/Instructions"
 @onready var end_turn_button: Button = $"../HUD/Controls/EndTurn"
@@ -105,23 +128,24 @@ var battle_over: bool = false
 @onready var hp_text: Label = $"../HUD/Controls/UnitInfo/Margin/Row/Details/HPText"
 @onready var weapon_text: Label = $"../HUD/Controls/UnitInfo/Margin/Row/Details/WeaponText"
 @onready var forecast_panel: PanelContainer = $"../HUD/Controls/BattleForecast"
-@onready var forecast_matchup: Label = $"../HUD/Controls/BattleForecast/Margin/Details/Matchup"
-@onready var forecast_stats: Label = $"../HUD/Controls/BattleForecast/Margin/Details/Stats"
+@onready var forecast_comparison: GridContainer = $"../HUD/Controls/BattleForecast/Margin/Details/Comparison"
+@onready var forecast_order: HBoxContainer = $"../HUD/Controls/BattleForecast/Margin/Details/Order"
+@onready var forecast_counter_note: Label = $"../HUD/Controls/BattleForecast/Margin/Details/CounterNote"
 
 
 func _ready() -> void:
 	for row in range(ROWS):
 		for column in range(COLUMNS):
 			cells[Vector2i(column - floori(row / 2.0), row)] = true
-	players = [
-		Unit.new(1, Vector2i(3, 4), preload("res://characters/blue_1.tres"), false),
-		Unit.new(2, Vector2i(2, 6), preload("res://characters/blue_2.tres"), false),
-	]
-	enemies = [
-		Unit.new(1, Vector2i(6, 4), preload("res://characters/red_1.tres"), true),
-		Unit.new(2, Vector2i(6, 2), preload("res://characters/red_2.tres"), true),
-		Unit.new(3, Vector2i(4, 7), preload("res://characters/red_3.tres"), true),
-	]
+	var starting_rows: Array[int] = [2, 4, 5, 7, 8]
+	for index in range(starting_rows.size()):
+		var row: int = starting_rows[index]
+		var offset: int = floori(row / 2.0)
+		var number: int = index + 1
+		var blue: CharacterDefinition = load("res://characters/blue_%d.tres" % number)
+		var red: CharacterDefinition = load("res://characters/red_%d.tres" % number)
+		players.append(Unit.new(number, Vector2i(4 - offset, row), blue, false))
+		enemies.append(Unit.new(number, Vector2i(8 - offset, row), red, true))
 	for unit in players + enemies:
 		unit.position = hex_to_pixel(unit.hex)
 	end_turn_button.pressed.connect(end_turn)
@@ -153,12 +177,12 @@ func _update_info_panel() -> void:
 	var weapon_name: String = unit.equipped_weapon.weapon_name if unit.equipped_weapon != null else "Unarmed"
 	if unit.equipped_weapon != null:
 		weapon_name += " · Weight %d" % unit.equipped_weapon.weight
-	weapon_text.text = "%s\nFurie %d · Vaillance %d\nDexterite %d · %d precision\nPuissance %d · %d%% avoid\n%d base damage × %d" % [
-		weapon_name, unit.furie, unit.vaillance, unit.dexterite, unit.precision(), unit.puissance, unit.puissance,
-		unit.attack_damage(), unit.strike_count()
+	weapon_text.text = "%s\nFurie %d · Vaillance %d\nDextérité %d · Priority %d\nPuissance %d\nElan %d · Tempérance %d\n%d base damage · Range %d" % [
+		weapon_name, unit.furie, unit.vaillance, unit.dexterite, unit.priority(), unit.max_hp,
+		unit.character.elan, unit.character.temperance, unit.attack_damage(), unit.attack_range
 	]
-	if unit.has_weight_penalty():
-		weapon_text.text += "\nWeight Penalty"
+	if unit.effective_weight() > 0:
+		weapon_text.text += "\nWeight penalty %d" % unit.effective_weight()
 
 
 func _input(event: InputEvent) -> void:
@@ -252,7 +276,7 @@ func _update_status() -> void:
 		instruction = "%s · Red hexes: movement · Orange hexes: attack reach" % inspected_enemy.unit_name
 	var budgets: PackedStringArray = []
 	for unit in players:
-		budgets.append("%s: %s" % [unit.unit_name, "done" if unit.actions_done else "%d / %d" % [unit.movement, unit.max_movement]])
+		budgets.append("Blue %d: %s" % [unit.number, "done" if unit.actions_done else "%d / %d" % [unit.movement, unit.max_movement]])
 	instructions.text = "Turn %d · Your turn · %s\n%s" % [turn_number, " · ".join(budgets), instruction]
 
 
@@ -260,11 +284,42 @@ func _update_battle_forecast() -> void:
 	forecast_panel.visible = preview_target != null and selected_unit != null
 	if not forecast_panel.visible:
 		return
-	forecast_matchup.text = "%s → %s" % [selected_unit.unit_name, preview_target.unit_name]
-	forecast_stats.text = "%d damage per hit\n%d%% hit chance per strike\n%s" % [
-		selected_unit.damage_against(preview_target), selected_unit.hit_chance(preview_target),
-		"2 strikes" if selected_unit.strike_count() == 2 else "1 strike"
-	]
+	var attack_hex: Vector2i = selected_unit.hex if preview_path.is_empty() else preview_path[-1]
+	var exchange: Exchange = _plan_exchange(selected_unit, preview_target, attack_hex)
+	_set_forecast_column("Ally", exchange.opening, true)
+	_set_forecast_column("Enemy", exchange.counter, exchange.counter_eligible)
+
+	for index in range(forecast_order.get_child_count()):
+		var slot: PanelContainer = forecast_order.get_child(index)
+		slot.visible = index < exchange.strikes.size()
+		if not slot.visible:
+			continue
+		var strike: Strike = exchange.strikes[index]
+		var action: String = "Attack"
+		if strike.is_counter:
+			action = "Counter"
+		elif index == exchange.strikes.size() - 1 and exchange.follow_up:
+			action = "Follow-up"
+		var side: String = "Red" if strike.attacker.enemy else "Blue"
+		var step: Label = slot.get_node("Step")
+		step.text = "%d  %s %d\n%s" % [index + 1, side, strike.attacker.number, action]
+		step.modulate = Color("ff9090") if strike.attacker.enemy else Color("6bc2ff")
+
+	forecast_counter_note.visible = not exchange.counter_eligible
+	if forecast_counter_note.visible:
+		var out_of_range: bool = _hex_distance(preview_target.hex, attack_hex) > preview_target.attack_range
+		forecast_counter_note.text = "No counter · Out of range" if out_of_range else "No counter · Stat threshold not met"
+
+
+func _set_forecast_column(column: String, strike: Strike, can_strike: bool) -> void:
+	var name_label: Label = forecast_comparison.get_node("Name" + column)
+	var damage_label: Label = forecast_comparison.get_node("Damage" + column)
+	var hit_label: Label = forecast_comparison.get_node("Hit" + column)
+	var crit_label: Label = forecast_comparison.get_node("Crit" + column)
+	name_label.text = strike.attacker.unit_name
+	damage_label.text = str(strike.damage) if can_strike else "—"
+	hit_label.text = "%d%%" % strike.hit_chance if can_strike else "—"
+	crit_label.text = "%d%%" % strike.crit_chance if can_strike else "—"
 
 
 func _update_preview(target: Vector2i) -> void:
@@ -354,6 +409,10 @@ func _draw() -> void:
 		var result: String = "-%d" % hit_damage if attack_hit else "Miss"
 		if attack_hit and hit_damage == 0:
 			result = "Blocked"
+		if critical_hit and hit_damage > 0:
+			result = "Critical · " + result
+		if counter_strike:
+			result = "Counter · " + result
 		var font: Font = ThemeDB.fallback_font
 		var width: float = font.get_string_size(result, HORIZONTAL_ALIGNMENT_LEFT, -1, 26).x
 		draw_string(font, hit_unit.position + Vector2(-width / 2.0, -UNIT_RADIUS - 20), result, HORIZONTAL_ALIGNMENT_LEFT, -1, 26, Color("ffcf9c"))
@@ -583,25 +642,54 @@ func attack_unit(target: Unit) -> void:
 	_update_status()
 
 
+func _plan_exchange(attacker: Unit, defender: Unit, attack_hex: Vector2i) -> Exchange:
+	var exchange := Exchange.new()
+	var defender_direction: int = _facing_toward(hex_to_pixel(defender.hex), hex_to_pixel(attack_hex), defender.facing)
+	var rear: bool = defender_direction == (defender.facing + 3) % 6
+	exchange.opening = Strike.new(attacker, defender, rear, false)
+	# The initiator faces the defender during the exchange, exposing no rear to the counter.
+	exchange.counter = Strike.new(defender, attacker, false, true)
+	var counter_score: int = defender.vaillance + defender.character.elan - attacker.character.temperance
+	exchange.counter_eligible = counter_score > 0 and _hex_distance(defender.hex, attack_hex) <= defender.attack_range
+	exchange.follow_up = attacker.furie - attacker.effective_weight() - defender.character.temperance > 0
+	var defender_first: bool = exchange.counter_eligible and defender.priority() > attacker.priority()
+	if defender_first:
+		exchange.strikes.append(exchange.counter)
+	exchange.strikes.append(exchange.opening)
+	if exchange.counter_eligible and not defender_first:
+		exchange.strikes.append(exchange.counter)
+	if exchange.follow_up:
+		exchange.strikes.append(exchange.opening)
+	return exchange
+
+
 func _resolve_attack(attacker: Unit, target: Unit) -> void:
+	var exchange: Exchange = _plan_exchange(attacker, target, attacker.hex)
 	attacker.facing = _facing_toward(attacker.position, target.position, attacker.facing)
 	attacker.actions_done = true
 	attacker.movement = 0
-	var strikes: int = attacker.strike_count()
-	for strike in range(strikes):
-		attack_hit = randi_range(1, 100) <= attacker.hit_chance(target)
-		hit_damage = mini(target.hp, attacker.damage_against(target)) if attack_hit else 0
-		target.hp -= hit_damage
-		hit_unit = target
-		_update_info_panel()
-		queue_redraw()
-		await get_tree().create_timer(0.28).timeout
-		hit_unit = null
-		if target.hp == 0:
-			break
-		if strike + 1 < strikes:
-			queue_redraw()
+	for index in range(exchange.strikes.size()):
+		if index > 0:
 			await get_tree().create_timer(0.12).timeout
+		await _resolve_strike(exchange.strikes[index])
+		if attacker.hp == 0 or target.hp == 0:
+			break
+
+
+func _resolve_strike(strike: Strike) -> void:
+	var target: Unit = strike.target
+	attack_hit = randi_range(1, 100) <= strike.hit_chance
+	critical_hit = attack_hit and randi_range(1, 100) <= strike.crit_chance
+	var damage: int = strike.damage * (2 if critical_hit else 1)
+	hit_damage = mini(target.hp, damage) if attack_hit else 0
+	target.hp -= hit_damage
+	hit_unit = target
+	counter_strike = strike.is_counter
+	_update_info_panel()
+	queue_redraw()
+	await get_tree().create_timer(0.28).timeout
+	hit_unit = null
+	counter_strike = false
 	if target.hp == 0:
 		players.erase(target)
 		enemies.erase(target)
@@ -640,7 +728,8 @@ func end_turn() -> void:
 	moving = true
 	_update_status()
 	await get_tree().create_timer(0.25).timeout
-	for enemy in enemies:
+	# A counter can remove the acting enemy from the live roster.
+	for enemy in enemies.duplicate():
 		if players.is_empty():
 			break
 		var path: Array[Vector2i] = _enemy_path(enemy)

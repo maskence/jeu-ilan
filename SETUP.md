@@ -34,19 +34,22 @@ shared through Git; each developer installs the editor separately.
 
 ## Editing individual characters
 
-In Godot's **FileSystem** panel, open `res://characters/` and click a `.tres`
-file: `blue_1`, `blue_2`, `red_1`, `red_2`, or `red_3`. Each file represents
-one unique character. The **Inspector** exposes its name, portrait, movement,
-Puissance, attack range, Furie, Vaillance, and Dexterite. Expand **Stats** to see
-the numeric fields. Each point of Dexterite adds 5 precision. Each point of
-Puissance grants 1 max HP and subtracts 1 percentage point from an opponent's
-hit chance. The final chance is capped between 0% and 100%.
-Edit weapon Weight on the weapon resource under `res://weapons/`. Each strike
-deals Furie plus weapon ATK on a hit. Furie above the equipped weapon's Weight
-grants a second strike in the same attack action.
-The target's Vaillance reduces each hit's damage to a minimum of zero.
-A character has Weight Penalty when their Vaillance falls below their equipped
-weapon's Weight. The penalty currently appears in the unit panel.
+In Godot's **FileSystem** panel, open a character resource under
+`res://characters/`. Each file has its own name, portrait, equipped weapon,
+attack range, and stats. The current test battle has five units per side.
+To start a new character from a level-1 preset, duplicate a resource from
+`res://characters/presets/`, then edit the copy in the **Inspector**.
+
+Puissance sets max HP. Dextérité and effective weapon Weight determine
+priority. Vaillance ignores Weight only when it exceeds the weapon's Weight.
+An in-range defender can counter when its Vaillance plus Elan exceeds the
+initiator's Tempérance. A higher-priority defender counters first. The
+initiator qualifies for a follow-up when Furie exceeds the sum of effective
+Weight and defender Tempérance.
+
+The Battle Forecast shows attack order, damage, hit chance, and crit chance.
+Rear attacks gain 10 hit and 1 damage. Criticals double damage after Vaillance.
+Edit weapon ATK, precision, Weight, and Crit in `res://weapons/`.
 Save the resource after editing, then stop and restart the game to apply it.
 
 Current HP, remaining movement, facing, and spent actions are separate battle
